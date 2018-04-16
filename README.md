@@ -12,18 +12,3 @@ group](http://www.bris.ac.uk/biochemistry/people/richard-b-sessions/index.html).
 2. McIntosh-Smith S. et al. (2014) High performance in silico virtual drug
    screening on many-core processors. *Int. J. High Perform. Comput. Appl.*, 29,
    119–134.
-
-# Work In Progress
-
-## Documentation
-
-ChrisWellsWood: I'm currently working through the documentation in this module
-and attempting to improve it. I'm also running `autopep8` on everything to tidy
-up the files in general.
-
-### In Progress
-
-### Finished
-
-* `calculate_energy.pyx`
-* `force_field.py`
