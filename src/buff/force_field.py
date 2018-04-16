@@ -2,13 +2,55 @@
 
 import json
 import pathlib
+import warnings
 
-FF_PATH = pathlib.Path(__file__).parent / 'force_fields'
-FORCE_FIELDS = {}
 
-for ff in FF_PATH.glob('*.json'):
-    ff_id = ff.name.split('.')[0]
-    FORCE_FIELDS[ff_id] = str(ff)
+def assign_force_field(ampal_obj, ff):
+    """Assigns force field parameters to Atoms in the AMPAL object.
+
+    Parameters
+    ----------
+    ampal_obj : AMPAL Object
+        Any AMPAL object with a `get_atoms` method.
+    ff: BuffForceField
+        The force field to be used for scoring.
+    """
+    if hasattr(ampal_obj, 'ligands'):
+        atoms = ampal_obj.get_atoms(ligands=True, inc_alt_states=True)
+    else:
+        atoms = ampal_obj.get_atoms(inc_alt_states=True)
+    for atom in atoms:
+        w_str = None
+        a_ff_id = None
+        if atom.element == 'H':
+            continue
+        elif atom.parent.mol_code.upper() == 'HOH':
+            continue
+        elif atom.parent.mol_code.upper() in ff:
+            if atom.res_label.upper() in ff[atom.parent.mol_code]:
+                a_ff_id = (atom.parent.mol_code.upper(),
+                           atom.res_label.upper())
+            elif atom.res_label.upper() in ff['WLD']:
+                a_ff_id = ('WLD', atom.res_label.upper())
+            else:
+                w_str = ('{} atom is not parameterised in the selected '
+                         'force field for {} residues, this will be '
+                         'ignored.').format(
+                             atom.res_label, atom.parent.mol_code)
+        elif atom.res_label.upper() in ff['WLD']:
+            a_ff_id = ('WLD', atom.res_label.upper())
+        else:
+            w_str = ('{} ({}) atom is not parameterised in the selected'
+                     ' residue force field.').format(
+                         atom.res_label, atom.parent.mol_code)
+        if w_str:
+            warnings.warn(w_str, NotParameterisedWarning)
+        atom.tags['_buff_ff_id'] = a_ff_id
+    return
+
+
+class NotParameterisedWarning(RuntimeWarning):
+    pass
 
 
 class ForceFieldParameterError(Exception):
@@ -27,20 +69,20 @@ class BuffForceField(dict):
     Attributes
     ----------
     """
-    _parameter_struct_dict = None
-    _old_hash = None
-    _defined_dist_cutoff = None
 
-    def __init__(self, force_field='standard', auto_update_params=False):
-
-        with open(FORCE_FIELDS[force_field], 'r') as inf:
+    def __init__(self, force_field_path, force_field_name, auto_update_params=False):
+        _parameter_struct_dict = None
+        _old_hash = None
+        _defined_dist_cutoff = None
+        with open(force_field_path, 'r') as inf:
             in_d = json.loads(inf.read())
         super().__init__(in_d)
-        self.force_field = force_field
+        self.path = force_field_path
+        self.name = force_field_name
         self.auto_update_f_params = auto_update_params
 
     def __repr__(self):
-        return "<BUFF Force Field Object: {}>".format(self.force_field)
+        return "<BUFF Force Field Object: {}>".format(self.name)
 
     @property
     def max_radius_and_npnp(self):
