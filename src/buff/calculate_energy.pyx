@@ -1,6 +1,6 @@
 """Contains code for calculating BUFF energies."""
 # distutils: language = c++
-#cython: embedsignature=True
+# cython: embedsignature=True
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
@@ -8,6 +8,7 @@ from libcpp.vector cimport vector
 from functools import total_ordering
 import itertools
 
+from ampal import PseudoAtom
 from ampal.geometry import distance
 
 
@@ -65,10 +66,10 @@ cpdef get_within_ff_cutoff(interaction_pairs, double force_field_cutoff):
         if m_dist <= force_field_cutoff:
             a_atoms = [atom
                        for atom in ref_atom_a.parent.atoms.values()
-                       if atom._ff_id is not None]
+                       if atom.tags['_buff_ff_id'] is not None]
             b_atoms = [atom
                        for atom in ref_atom_b.parent.atoms.values()
-                       if atom._ff_id is not None]
+                       if atom.tags['_buff_ff_id'] is not None]
             interactions.extend(itertools.product(a_atoms, b_atoms))
     return interactions
 
@@ -102,8 +103,8 @@ cpdef score_interactions(interactions, ff):
     ffpsd = ff.parameter_struct_dict
     for interaction in interactions:
         a, b = interaction
-        a_params = ffpsd[a._ff_id[0]][a._ff_id[1]]
-        b_params = ffpsd[b._ff_id[0]][b._ff_id[1]]
+        a_params = ffpsd[a.tags['_buff_ff_id'][0]][a.tags['_buff_ff_id'][1]]
+        b_params = ffpsd[b.tags['_buff_ff_id'][0]][b.tags['_buff_ff_id'][1]]
         dist = distance(a._vector, b._vector)
         if dist <= ffco:
             scores.append(calculatePairEnergy(
@@ -113,13 +114,13 @@ cpdef score_interactions(interactions, ff):
     return buff_score
 
 
-def find_intra_ampal(ampal, distance_cutoff, no_neighbour_backbone=True,
+def find_intra_ampal(ampal_obj, distance_cutoff, no_neighbour_backbone=True,
                      backbone_atoms=('N', 'CA', 'C', 'O')):
     """Finds interactions within an AMPAL object and returns the BUFF score.
 
     Parameters
     ----------
-    ampal: AMPAL object
+    ampal_obj: AMPAL object
         Any AMPAL object that inherits from BaseAmpal.
     distance_cutoff: float
         Distance (Å) to find interactions.
@@ -135,9 +136,7 @@ def find_intra_ampal(ampal, distance_cutoff, no_neighbour_backbone=True,
         covalent bond distance.
 
     """
-    grp = [mon[mon.reference_atom]
-           for mon in ampal.get_monomers()
-           if hasattr(mon, 'reference_atom')]
+    grp = [get_reference_atom(mon) for mon in ampal_obj.get_monomers()]
     gross_interactions = itertools.combinations(grp, 2)
     interactions = get_within_ff_cutoff(gross_interactions, distance_cutoff)
     if no_neighbour_backbone:
@@ -158,7 +157,7 @@ def check_if_backbone_neighbours(interaction, backbone_atoms):
     return True
 
 
-def score_intra_ampal(ampal, ff):
+def score_intra_ampal(ampal_obj, ff):
     """Returns the BUFF score between all atoms in AMPAL object.
 
     This is just a convenience function that calls find_intra_ampal
@@ -166,7 +165,7 @@ def score_intra_ampal(ampal, ff):
 
     Parameters
     ----------
-    ampal: AMPAL Object
+    ampal_obj: AMPAL Object
         Any AMPAL object that inherits from BaseAmpal.
     ff: buff.BuffForceField
         The force field used for scoring.
@@ -177,7 +176,7 @@ def score_intra_ampal(ampal, ff):
         A BuffScore object with information about each of the
         interactions and the atoms involved.
     """
-    interactions = find_intra_ampal(ampal, ff.distance_cutoff)
+    interactions = find_intra_ampal(ampal_obj, ff.distance_cutoff)
     buff_score = score_interactions(interactions, ff)
     return buff_score
 
@@ -200,10 +199,10 @@ def find_inter_ampal(ampal_objects, distance_cutoff):
         covalent bond distance.
     """
     ref_atom_lists = map(
-        lambda ampal: [mon[mon.reference_atom]
-                       for mon in ampal.get_monomers()
-                       if hasattr(mon, 'reference_atom')],
-        ampal_objects)
+        lambda ampal_obj: [
+            get_reference_atom(mon)
+            for mon in ampal_obj.get_monomers()
+            ], ampal_objects)
     ampal_pairs = itertools.combinations(ref_atom_lists, 2)
     gross_interactions = itertools.chain(*(itertools.product(*ref_atom_lists)
                                            for ref_atom_lists in ampal_pairs))
@@ -233,6 +232,15 @@ def score_inter_ampal(ampal_objects, ff):
     interactions = find_inter_ampal(ampal_objects, ff.distance_cutoff)
     buff_score = score_interactions(interactions, ff)
     return buff_score
+
+def get_reference_atom(monomer):
+    """Returns a reference atom for the monomer."""
+    if hasattr(monomer, 'reference_atom'):
+        return monomer[monomer.reference_atom]
+    try:
+        return PseudoAtom(monomer.centre_of_mass, parent=monomer)
+    except KeyError:
+        return list(monomer.atoms.values())[0]
 
 
 @total_ordering

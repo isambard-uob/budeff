@@ -24,8 +24,6 @@ def assign_force_field(ampal_obj, ff):
         a_ff_id = None
         if atom.element == 'H':
             continue
-        elif atom.parent.mol_code.upper() == 'HOH':
-            continue
         elif atom.parent.mol_code.upper() in ff:
             if atom.res_label.upper() in ff[atom.parent.mol_code]:
                 a_ff_id = (atom.parent.mol_code.upper(),
@@ -71,12 +69,12 @@ class BuffForceField(dict):
     """
 
     def __init__(self, force_field_path, force_field_name, auto_update_params=False):
-        _parameter_struct_dict = None
-        _old_hash = None
-        _defined_dist_cutoff = None
         with open(force_field_path, 'r') as inf:
             in_d = json.loads(inf.read())
         super().__init__(in_d)
+        self._parameter_struct_dict = None
+        self._old_hash = None
+        self._defined_dist_cutoff = None
         self.path = force_field_path
         self.name = force_field_name
         self.auto_update_f_params = auto_update_params
