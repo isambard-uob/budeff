@@ -1,4 +1,4 @@
-"""Setup script for the BUFF."""
+"""Setup script for BUDEFF."""
 
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
@@ -11,7 +11,7 @@ def readme():
         return inf.read()
 
 
-setup(name='BUFF',
+setup(name='BUDEFF',
       version='1.0.0',
       description='A Python implementation of the BUDE force field.',
       long_description=readme(),
@@ -33,9 +33,9 @@ setup(name='BUFF',
       # This code automatically builds the Cython extensions.
       ext_modules=cythonize(
           [Extension(
-              "buff.calculate_energy",
-              ["src/buff/calculate_energy.pyx"],
-              include_dir=["src/buff/"],
+              "budeff.calculate_energy",
+              ["src/budeff/calculate_energy.pyx"],
+              include_dir=["src/budeff/"],
               language='c++'),
            ]
       ),
