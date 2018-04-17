@@ -6,7 +6,7 @@ BUFF is a standalone implementation of the
 group](http://www.bris.ac.uk/biochemistry/people/richard-b-sessions/index.html).
 
 [![CircleCI](https://circleci.com/gh/isambard-uob/buff/tree/master.svg?style=shield)](https://circleci.com/gh/isambard-uob/buff/)
-[![Python Version](https://img.shields.io/badge/python-3.5%2C%203.6-lightgrey.svg)](https://woolfson-group.github.io/isambard/)
+[![Python Version](https://img.shields.io/badge/python-3.5%2C%203.6-lightgrey.svg)]()
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/isambard-uob/buff/blob/master/LICENSE)
 
 ## References
