@@ -7,5 +7,5 @@ jobs:
       - checkout
       - run: pip install Cython
       - run: pip install pytest
-      - run: python setup.py install
+      - run: pip install .
       - run: pytest
