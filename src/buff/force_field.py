@@ -4,6 +4,8 @@ import json
 import pathlib
 import warnings
 
+from .calculate_energy import PyAtomData
+
 
 def assign_force_field(ampal_obj, ff):
     """Assigns force field parameters to Atoms in the AMPAL object.
@@ -147,8 +149,6 @@ class BuffForceField(dict):
             Dictionary containing PyAtomData structs for the force field
             parameters for each atom in the force field.
         """
-        from buff import PyAtomData
-
         try:
             ff_params_struct_dict = {}
             for res in self.keys():
