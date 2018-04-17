@@ -1,34 +1,34 @@
-# Bristol University Force Field (BUFF)
+# Bristol University Docking Engine Force Field (BUDEFF)
 
-BUFF is a standalone implementation of the
+BUDEFF is a standalone implementation of the
 [BUDE](http://www.bristol.ac.uk/biochemistry/research/bude/) (Bristol University
  Docking Engine) all-atom force field<sup>1,2</sup>. The force field is developed by the [Sessions
 group](http://www.bris.ac.uk/biochemistry/people/richard-b-sessions/index.html).
 
-[![CircleCI](https://circleci.com/gh/isambard-uob/buff/tree/master.svg?style=shield)](https://circleci.com/gh/isambard-uob/buff/)
+[![CircleCI](https://circleci.com/gh/isambard-uob/budeff/tree/master.svg?style=shield)](https://circleci.com/gh/isambard-uob/budeff/)
 [![Python Version](https://img.shields.io/badge/python-3.5%2C%203.6-lightgrey.svg)]()
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/isambard-uob/buff/blob/master/LICENSE)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/isambard-uob/budeff/blob/master/LICENSE)
 
 ## Installation
 
-You can install BUFF from pip:
+You can install BUDEFF from pip:
 
-`pip install buff`
+`pip install budeff`
 
 Or from source by downloading/cloning this repository, navigating to the folder
 and typing:
 
 `pip install .`
 
-BUFF uses Cython, so if you're installing from source make sure you have it
+BUDEFF uses Cython, so if you're installing from source make sure you have it
 installed.
 
 ## Usage
 
-BUFF can be used to calculate energies for any protein structure that has been
-loaded into [AMPAL](https://github.com/isambard-uob/ampal/), a simple framework
-for representing biomolecular structure. You can load a structure into AMPAL
-like so:
+The BUDE force field can be used to calculate energies for any protein structure
+that has been loaded into [AMPAL](https://github.com/isambard-uob/ampal/), a
+simple framework for representing biomolecular structure. You can load a
+structure into AMPAL like so:
 
 ```Python
 import ampal
@@ -41,15 +41,15 @@ two modes:
 1. Internal Energy - In this mode a single AMPAL object is supplied and the
    energy between every pair of atoms is calculated, so long as the atom is parameterised in
    the [force field](
-   https://github.com/isambard-uob/buff/tree/master/src/buff/force_fields/).
+   https://github.com/isambard-uob/budeff/tree/master/src/budeff/force_fields/).
 1. Interaction Energy - In this mode a list of AMPAL objects is supplied and the
    energy of atom pairs forming the interaction between these objects is
    measured. For example, if the interaction energy between object A and object
    B, then all atom pairs will contain one atom from A and one from B.
 
 ```Python
-import buff
-internal_energy = buff.get_internal_energy(structure)
+import budeff
+internal_energy = budeff.get_internal_energy(structure)
 # OUT: NotParameterisedWarning: O (HOH) atom is not parameterised in the selected residue force field.
 # OUT:   warnings.warn(w_str, NotParameterisedWarning)
 ```
@@ -99,7 +99,7 @@ This take a list of ampal objects and calculates the interaction energy between
 these objects:
 
 ```Python
-interaction_energy = buff.get_interaction_energy([structure[0], structure[1]])
+interaction_energy = budeff.get_interaction_energy([structure[0], structure[1]])
 print(interaction_energy)
 # OUT: NotParameterisedWarning: O (HOH) atom is not parameterised in the selected residue force field.
 # OUT:   warnings.warn(w_str, NotParameterisedWarning)
